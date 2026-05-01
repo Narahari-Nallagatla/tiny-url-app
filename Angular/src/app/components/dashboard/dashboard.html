@@ -1,0 +1,51 @@
+<div class="main-container">
+  <h2 class="title" style="border-bottom: 2px solid #f3e5f5; padding-bottom: 10px; text-align: left;">
+    URL Analytics Dashboard
+  </h2>
+
+  <div class="list-header" style="text-align: left;">
+    <input type="text" 
+           [(ngModel)]="searchText" 
+           placeholder="Filter your links..." 
+           class="search-input">
+  </div>
+
+  <div class="url-list-scroll-container">
+    
+    @for (item of filteredUrls; track item.code) {
+      <div class="url-card">
+        
+        <div class="url-info">
+          <h4 class="short-link" style="margin: 0;">
+            {{ item.shortURL }}
+          </h4>
+          <p class="original-link">
+            {{ item.originalURL }}
+          </p>
+        </div>
+
+        <div class="action-group">
+          <div style="text-align: center; margin-right: 10px;">
+            <span class="clicks-badge" style="display: block; font-size: 1.2rem; padding: 5px 15px;">
+              {{ item.totalClicks }}
+            </span>
+            <small style="font-size: 10px; color: #aaa; text-transform: uppercase;">Total Clicks</small>
+          </div>
+
+          <button (click)="copyToClipboard(item.shortURL)" class="btn-copy">
+            Copy
+          </button>
+          
+          <button (click)="onDelete(item.code)" class="btn-delete">
+            Delete
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-msg" style="padding: 50px;">
+        <p>No links found matching your criteria.</p>
+      </div>
+    }
+
+  </div>
+</div>

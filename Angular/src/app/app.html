@@ -1,0 +1,65 @@
+<div class="main-container">
+  
+  <h1 class="title">Tiny URL</h1>
+
+  <div class="input-card">
+    <div class="input-row">
+      <input type="text" [(ngModel)]="inputUrl" placeholder="Enter URL to shorten" class="url-input">
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="isPrivate"> IsPrivate
+      </label>
+    </div>
+    
+    <button (click)="onGenerate()" class="btn-generate">
+      Generate
+    </button>
+
+    @if (generatedUrl) {
+      <div class="success-box">
+        <div class="success-text">
+          <strong class="success-label">Short URL:</strong> 
+          <a [href]="generatedUrl" target="_blank" class="success-link">
+            {{ generatedUrl }}
+          </a>
+        </div>
+        <button (click)="copyToClipboard(generatedUrl)" class="btn-copy-success">
+          Copy
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="list-header">
+    <h2 class="list-title">Public URLs</h2>
+    <input type="text" [(ngModel)]="searchText" placeholder="Search URLs..." class="search-input">
+  </div>
+
+  <div class="url-list-scroll-container">
+    @for (item of filteredUrls; track item.code) {
+      <div class="url-card">
+        <div class="url-info">
+          <a [href]="item.shortURL" target="_blank" class="short-link">
+            {{ item.shortURL }}
+          </a>
+          <p class="original-link">
+            {{ item.originalURL }}
+          </p>
+        </div>
+
+        <div class="action-group">
+          <button (click)="copyToClipboard(item.shortURL)" class="btn-copy">
+            Copy
+          </button>
+          <span class="clicks-badge">
+            {{ item.totalClicks }} clicks
+          </span>
+          <button (click)="onDelete(item.code)" class="btn-delete">
+            Delete
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-msg">No matching URLs found.</div>
+    }
+  </div>
+</div>
