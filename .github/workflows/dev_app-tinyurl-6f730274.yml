@@ -8,7 +8,7 @@ on:
     branches:
       - Dev
     paths:
-      - 'DotnetCore/**'  # Only run if files in this folder change
+      - 'DotnetCore/**' 
   workflow_dispatch:
 
 jobs:
@@ -32,13 +32,13 @@ jobs:
         run: dotnet build DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj --configuration Release --no-restore
 
       - name: dotnet publish
-        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./publish
+        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./output
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./publish
+          path: ./output
 
   deploy:
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-          path: .net-app
+          path: ./output
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -67,4 +67,4 @@ jobs:
         with:
           app-name: 'app-tinyurl-6f730274'
           slot-name: 'Production'
-          package: .net-app
+          package: ./output
