@@ -9,6 +9,7 @@ on:
       - Dev
     paths:
       - 'DotnetCore/**'
+      - '.github/workflows/dev_app-tinyurl-6f730274.yml'
   workflow_dispatch:
 
 jobs:
