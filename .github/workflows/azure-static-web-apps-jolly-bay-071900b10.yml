@@ -39,5 +39,5 @@ jobs:
           ###### Repository/Build Configurations ######
           app_location: "/Angular" 
           api_location: "" 
-          output_location: "dist/tiny-url-app/browser" 
+          output_location: "dist/tiny-url-app" 
           github_id_token: ${{ steps.idtoken.outputs.result }}
