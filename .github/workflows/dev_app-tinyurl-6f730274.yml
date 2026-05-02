@@ -24,10 +24,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: dotnet restore
-        run: dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.sln
+        run: dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
 
       - name: Build with dotnet
-        run: dotnet build DotnetCore/TinyUrlBackend/TinyUrlBackend.sln --configuration Release --no-restore
+        run: dotnet build DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj --configuration Release --no-restore
 
       - name: dotnet publish
         run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./publish
