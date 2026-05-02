@@ -23,24 +23,21 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # Use '*' to find the solution file automatically
+      # We provide the full path from the root of the repo
       - name: dotnet restore
-        run: dotnet restore *.sln
+        run: dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.sln
 
       - name: Build with dotnet
-        run: dotnet build *.sln --configuration Release --no-restore
+        run: dotnet build DotnetCore/TinyUrlBackend/TinyUrlBackend.sln --configuration Release --no-restore
 
-      # Use '*' to find the project file automatically
       - name: dotnet publish
-        # We output to a folder named 'publish' inside the runner
-        run: dotnet publish *.csproj -c Release -o ./publish
+        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          # Points to the output folder we just created
-          path: DotnetCore/TinyUrlBackend/publish
+         path: ./publish # Since we published to ./publish, it's right here
 
   deploy:
     runs-on: ubuntu-latest
