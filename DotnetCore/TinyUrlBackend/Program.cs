@@ -20,6 +20,10 @@ builder.Host.UseSerilog();
 // Pulls connection string or defaults to tinyurl.db
 // builder.Services.AddDbContext<AppDbContext>(opt =>  opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=tinyurl.db"));
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddApplicationInsightsTelemetry(options =>
+{
+    options.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+});
 
 
 // Configure Swagger to match the demo title "Tiny URL API"
@@ -41,6 +45,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -74,6 +80,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/api/health");
 app.MapControllers();
 
 // --- 4. API ROUTES WITH LOGGING ---

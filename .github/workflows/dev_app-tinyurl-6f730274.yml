@@ -32,6 +32,9 @@ jobs:
       - name: dotnet publish
         run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./output
 
+      - name: Build and Publish Cleanup WebJob
+        run: |
+          dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj -c Release -o ./output/App_Data/jobs/triggered/TinyUrlCleanup
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
