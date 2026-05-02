@@ -23,15 +23,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      # Use '*' to find the solution file automatically
       - name: dotnet restore
-        run: dotnet restore TinyUrlBackend.sln
+        run: dotnet restore *.sln
 
       - name: Build with dotnet
-        run: dotnet build TinyUrlBackend.sln --configuration Release --no-restore
+        run: dotnet build *.sln --configuration Release --no-restore
 
+      # Use '*' to find the project file automatically
       - name: dotnet publish
         # We output to a folder named 'publish' inside the runner
-        run: dotnet publish TinyUrlBackend.csproj -c Release -o ./publish
+        run: dotnet publish *.csproj -c Release -o ./publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
