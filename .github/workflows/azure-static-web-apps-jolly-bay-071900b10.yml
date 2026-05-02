@@ -5,13 +5,14 @@ on:
     branches:
       - Dev
     paths:
-      - 'Angular/**'     # Only run if files in this folder change
+      - 'Angular/**'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - Dev
     paths:
-      - 'Angular/**'     # Only run if files in this folder change
+      - 'Angular/**'
+  workflow_dispatch: # Allows you to manually click "Run Workflow" in GitHub Actions
 
 jobs:
   build_and_deploy_job:
