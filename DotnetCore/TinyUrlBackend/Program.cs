@@ -23,20 +23,30 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Conf
 
 
 // Configure Swagger to match the demo title "Tiny URL API"
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Tiny URL API", Version = "v1" });
 });
 
-// Enable CORS for Angular (Essential for the frontend to talk to this backend)
-builder.Services.AddCors(opt => opt.AddDefaultPolicy(p =>
-    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 
 var app = builder.Build();
 
 // --- 2. GLOBAL ERROR HANDLING (Add this here!) ---
-app.Use(async (context, next) => {
+app.Use(async (context, next) =>
+{
     try
     {
         await next();
@@ -51,22 +61,26 @@ app.Use(async (context, next) => {
     }
 });
 
-// --- 3. MIDDLEWARE CONFIGURATION ---
-if (app.Environment.IsDevelopment())
+// This enables Swagger in both Development AND Production (Azure)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiny URL API v1");
-        c.DocumentTitle = "Tiny URL API";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiny URL API v1");
+    c.DocumentTitle = "Tiny URL API";
+    c.RoutePrefix = "swagger"; // This ensures it's at /swagger
+});
 
-app.UseCors();
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 // --- 4. API ROUTES WITH LOGGING ---
 
 // POST: /api/add
-app.MapPost("/api/add", async (TinyUrlAddDto dto, AppDbContext db, IConfiguration config, ILogger<Program> logger) => {
+app.MapPost("/api/add", async (TinyUrlAddDto dto, AppDbContext db, IConfiguration config, ILogger<Program> logger) =>
+{
     logger.LogInformation("Processing request to shorten: {Url}", dto.originalURL);
 
     if (string.IsNullOrEmpty(dto.originalURL))
@@ -95,13 +109,15 @@ app.MapPost("/api/add", async (TinyUrlAddDto dto, AppDbContext db, IConfiguratio
 }).WithTags("tiny-url");
 
 // GET: /api/public
-app.MapGet("/api/public", async (AppDbContext db, ILogger<Program> logger) => {
+app.MapGet("/api/public", async (AppDbContext db, ILogger<Program> logger) =>
+{
     logger.LogInformation("Fetching all public URLs.");
     return await db.Urls.Where(u => !u.isPrivate).ToListAsync();
 }).WithTags("tiny-url");
 
 // GET: /{code} (Redirect Logic)
-app.MapGet("/{code}", async (string code, AppDbContext db, ILogger<Program> logger) => {
+app.MapGet("/{code}", async (string code, AppDbContext db, ILogger<Program> logger) =>
+{
     logger.LogInformation("Redirect request for code: {Code}", code);
 
     var mapping = await db.Urls.FirstOrDefaultAsync(u => u.code == code);
@@ -118,7 +134,8 @@ app.MapGet("/{code}", async (string code, AppDbContext db, ILogger<Program> logg
 }).WithTags("tiny-url");
 
 // DELETE: /api/delete/{code}
-app.MapDelete("/api/delete/{code}", async (string code, AppDbContext db, ILogger<Program> logger) => {
+app.MapDelete("/api/delete/{code}", async (string code, AppDbContext db, ILogger<Program> logger) =>
+{
     var mapping = await db.Urls.FirstOrDefaultAsync(u => u.code == code);
     if (mapping == null) return Results.NotFound();
 
@@ -129,7 +146,8 @@ app.MapDelete("/api/delete/{code}", async (string code, AppDbContext db, ILogger
 }).WithTags("tiny-url");
 
 // DELETE: /api/delete-all
-app.MapDelete("/api/delete-all", async (AppDbContext db) => {
+app.MapDelete("/api/delete-all", async (AppDbContext db) =>
+{
     var all = await db.Urls.ToListAsync();
     db.Urls.RemoveRange(all);
     await db.SaveChangesAsync();
@@ -137,7 +155,8 @@ app.MapDelete("/api/delete-all", async (AppDbContext db) => {
 }).WithTags("tiny-url");
 
 // PUT: /api/update/{code}
-app.MapPut("/api/update/{code}", async (string code, TinyUrlAddDto dto, AppDbContext db) => {
+app.MapPut("/api/update/{code}", async (string code, TinyUrlAddDto dto, AppDbContext db) =>
+{
     var existing = await db.Urls.FirstOrDefaultAsync(u => u.code == code);
     if (existing == null) return Results.NotFound();
 
@@ -147,12 +166,19 @@ app.MapPut("/api/update/{code}", async (string code, TinyUrlAddDto dto, AppDbCon
     return Results.Ok(existing);
 }).WithTags("tiny-url");
 
-//  --- 5. AUTOMATIC DATABASE INITIALIZATION
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.EnsureCreated();
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        context.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
 }
 
 app.Run();
-

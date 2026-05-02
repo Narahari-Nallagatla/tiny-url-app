@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
@@ -17,10 +16,7 @@ namespace TinyUrlCleanup
         [Function("DeleteOldUrls")]
         public void Run([TimerTrigger("0 0 * * * *")] TimerInfo myTimer)
         {
-            _logger.LogInformation($"Cleanup started at: {DateTime.Now}");
-
-            // This is where we will eventually add the code to 
-            // talk to your SQL Database and delete the data.
+            _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
         }
     }
 }
