@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - Dev
+    paths:
+      - 'DotnetCore/**'
   workflow_dispatch:
 
 jobs:
