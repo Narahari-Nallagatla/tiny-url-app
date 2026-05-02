@@ -8,8 +8,8 @@ on:
     branches:
       - Dev
     paths:
-      - 'DotnetCore/**' 
-  workflow_dispatch:
+      - 'DotnetCore/**'  # Ensure folder casing matches exactly in GitHub
+  workflow_dispatch:     # Enables the manual "Run workflow" button
 
 jobs:
   build:
