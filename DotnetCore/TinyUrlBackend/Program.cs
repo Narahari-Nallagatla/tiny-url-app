@@ -18,8 +18,9 @@ builder.Host.UseSerilog();
 
 // 1. SERVICES CONFIGURATION
 // Pulls connection string or defaults to tinyurl.db
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=tinyurl.db"));
+// builder.Services.AddDbContext<AppDbContext>(opt =>  opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=tinyurl.db"));
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 // Configure Swagger to match the demo title "Tiny URL API"
 builder.Services.AddEndpointsApiExplorer();

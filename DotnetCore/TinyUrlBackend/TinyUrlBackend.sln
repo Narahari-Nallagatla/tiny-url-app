@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37027.9 d17.14
+VisualStudioVersion = 17.14.37027.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyUrlBackend", "TinyUrlBackend.csproj", "{047B424F-91EE-443E-BC43-11258BE522D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyUrlCleanup", "..\TinyUrlCleanup\TinyUrlCleanup.csproj", "{FE9EC6ED-17D8-45BB-AAC5-B615143FD432}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{047B424F-91EE-443E-BC43-11258BE522D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{047B424F-91EE-443E-BC43-11258BE522D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{047B424F-91EE-443E-BC43-11258BE522D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE9EC6ED-17D8-45BB-AAC5-B615143FD432}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE9EC6ED-17D8-45BB-AAC5-B615143FD432}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE9EC6ED-17D8-45BB-AAC5-B615143FD432}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE9EC6ED-17D8-45BB-AAC5-B615143FD432}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

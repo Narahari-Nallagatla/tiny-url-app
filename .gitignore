@@ -1,0 +1,36 @@
+# === Terraform ===
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+
+# === .NET (Visual Studio) ===
+bin/
+obj/
+[Log]/
+[log]/
+*.log
+.vs/
+.user
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# === Azure Functions ===
+local.settings.json
+bin/
+obj/
+.azurefunctions/
+.func-ignore
+
+# === Operating System ===
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
