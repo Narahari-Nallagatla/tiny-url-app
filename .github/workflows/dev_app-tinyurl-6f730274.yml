@@ -7,16 +7,11 @@ on:
   push:
     branches:
       - Dev
-    paths:
-      - 'DotnetCore/**'  # Ensure folder casing matches exactly in GitHub
-  workflow_dispatch:     # Enables the manual "Run workflow" button
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
       - uses: actions/checkout@v4
 
@@ -62,9 +57,7 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_68AF89D06B254CD1AB2FE0634C67E3FE }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-tinyurl-6f730274'
-          slot-name: 'Production'
           package: ./output
