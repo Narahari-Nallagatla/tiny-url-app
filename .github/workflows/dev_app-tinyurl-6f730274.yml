@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,6 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # We provide the full path from the root of the repo
       - name: dotnet restore
         run: dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.sln
 
@@ -37,21 +36,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-         path: ./publish # Since we published to ./publish, it's right here
+          path: ./publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     environment:
       name: 'Production'
-
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
-        uses: actions/upload-artifact@v4
+        uses: actions/download-artifact@v4
         with:
           name: .net-app
           path: .net-app
@@ -70,4 +68,3 @@ jobs:
           app-name: 'app-tinyurl-6f730274'
           slot-name: 'Production'
           package: .net-app
-          
