@@ -24,18 +24,18 @@ jobs:
       - name: Create Structure
         run: mkdir -p ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 2. Restore dependencies for both projects
+      # 2. Restore dependencies
       - name: dotnet restore
         run: |
           dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
           dotnet restore DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj
 
-      # 3. Build the API into the root of that folder
-      - name: Publish API
+      # 3. Build the API into the root of the staging folder
+      - name: Publish Backend API
         run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./final_package
 
       # 4. Build the WebJob into the specific subfolder
-      - name: Publish WebJob
+      - name: Publish Cleanup WebJob
         run: |
           dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
             -c Release \
@@ -44,20 +44,21 @@ jobs:
             -f net8.0 \
             -o ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 5. RESTORED: Detailed Verification step for GitHub logs
+      # 5. Detailed Verification (This will appear in your GitHub Logs)
       - name: Verify Artifact Structure
         run: |
-          echo "--- Root Level (API) ---"
+          echo "--- API Files Found ---"
           ls ./final_package
-          echo "--- WebJob Level ---"
+          echo "--- WebJob Files Found ---"
           ls ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 6. Upload the entire folder content as the artifact
+      # 6. Upload the artifact (Ensures it shows in the UI)
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
+          name: tinyurl-full-package  # Changed name to force a fresh upload
           path: ./final_package/
+          if-no-files-found: error    # Build will fail if files are missing
 
   deploy:
     runs-on: ubuntu-latest
@@ -70,7 +71,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: tinyurl-full-package
           path: ./deployment_dir
 
       - name: Login to Azure
@@ -80,7 +81,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_06514D3D4E2849D6955070A987346712 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_68AF89D06B254CD1AB2FE0634C67E3FE }}
 
-      # 7. Deploy the content of deployment_dir directly to wwwroot
+      # 7. Deploy the content to Azure
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
