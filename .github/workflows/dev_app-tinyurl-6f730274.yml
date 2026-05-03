@@ -20,44 +20,44 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 1. Create a specific staging area for the final package
-      - name: Create Staging Directory
-        run: mkdir -p ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
+      # 1. Create the EXACT folder structure Azure needs
+      - name: Create Structure
+        run: mkdir -p ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 2. Restore dependencies for the projects
+      # 2. Restore dependencies for both projects
       - name: dotnet restore
         run: |
           dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
           dotnet restore DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj
 
-      # 3. Publish the Backend API to the root of the staging folder
-      - name: Publish Backend API
-        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./publish_staging
+      # 3. Build the API into the root of that folder
+      - name: Publish API
+        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./final_package
 
-      # 4. Publish the Cleanup WebJob to the required Azure subfolder
-      - name: Publish Cleanup WebJob
+      # 4. Build the WebJob into the specific subfolder
+      - name: Publish WebJob
         run: |
           dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
             -c Release \
             -r linux-x64 \
             --self-contained false \
             -f net8.0 \
-            -o ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
+            -o ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 5. Verification step: Print the folder structure to the GitHub logs
+      # 5. RESTORED: Detailed Verification step for GitHub logs
       - name: Verify Artifact Structure
         run: |
           echo "--- Root Level (API) ---"
-          ls ./publish_staging
+          ls ./final_package
           echo "--- WebJob Level ---"
-          ls ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
+          ls ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 6. Upload everything in publish_staging as one artifact
-      - name: Upload artifact for deployment
+      # 6. Upload the entire folder content as the artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./publish_staging
+          path: ./final_package/
 
   deploy:
     runs-on: ubuntu-latest
@@ -67,12 +67,12 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-          path: ./publish_staging
-      
+          path: ./deployment_dir
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -80,8 +80,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_06514D3D4E2849D6955070A987346712 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_68AF89D06B254CD1AB2FE0634C67E3FE }}
 
+      # 7. Deploy the content of deployment_dir directly to wwwroot
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-tinyurl-6f730274'
-          package: ./publish_staging
+          package: ./deployment_dir
