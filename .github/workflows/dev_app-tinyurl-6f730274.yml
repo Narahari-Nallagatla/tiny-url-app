@@ -20,16 +20,18 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 1. Restore for the whole solution to ensure dependencies are mapped
+      # Create a clean staging directory structure
+      - name: Create Staging Directory
+        run: mkdir -p ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
+
       - name: dotnet restore
         run: dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
 
-      # 2. Publish Backend API to the root of the output folder
+      # Publish API to root
       - name: dotnet publish Backend
-        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./output        
+        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./publish_staging
 
-      # 3. Publish Cleanup WebJob into the specific App_Data path within the same output folder
-      # Using -f net8.0 and -r linux-x64 to ensure environment compatibility
+      # Publish WebJob to subfolder
       - name: Build and Publish Cleanup WebJob
         run: |
           dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
@@ -37,14 +39,17 @@ jobs:
             -r linux-x64 \
             --self-contained false \
             -f net8.0 \
-            -o ./output/App_Data/jobs/triggered/TinyUrlCleanup
+            -o ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
           
-      # 4. Upload the combined artifact (API + WebJob)
+      # DEBUG: This will show you in the logs if the file actually exists before zipping
+      - name: Verify WebJob Artifact Existence
+        run: ls -R ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./output
+          path: ./publish_staging
 
   deploy:
     runs-on: ubuntu-latest
@@ -58,7 +63,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-          path: ./output
+          path: ./publish_staging
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -71,4 +76,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-tinyurl-6f730274'
-          package: ./output
+          package: ./publish_staging
