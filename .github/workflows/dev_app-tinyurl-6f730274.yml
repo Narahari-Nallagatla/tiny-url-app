@@ -20,19 +20,26 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 1. Restore for the entire Solution (or both projects)
+      # 1. Restore for the whole solution to ensure dependencies are mapped
       - name: dotnet restore
         run: dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
 
-      # 2. Publish Backend API
+      # 2. Publish Backend API to the root of the output folder
       - name: dotnet publish Backend
         run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./output        
 
-      # 3. Publish Cleanup WebJob (Restore & Publish in one go to be safe)
+      # 3. Publish Cleanup WebJob into the specific App_Data path within the same output folder
+      # Using -f net8.0 and -r linux-x64 to ensure environment compatibility
       - name: Build and Publish Cleanup WebJob
         run: |
-          dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj -c Release -r linux-x64 --self-contained false -f net8.0 -o ./output/App_Data/jobs/triggered/TinyUrlCleanup
+          dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
+            -c Release \
+            -r linux-x64 \
+            --self-contained false \
+            -f net8.0 \
+            -o ./output/App_Data/jobs/triggered/TinyUrlCleanup
           
+      # 4. Upload the combined artifact (API + WebJob)
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
