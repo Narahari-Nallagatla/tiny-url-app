@@ -1,5 +1,4 @@
-﻿using System.Xml.Serialization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TinyUrlBackend.Data; // Ensure this matches your namespace for ApplicationDbContext
 using TinyUrlBackend.Models; // Ensure this matches your namespace for the Url model
