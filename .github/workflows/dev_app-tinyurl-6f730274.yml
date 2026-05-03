@@ -20,19 +20,22 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # Create a clean staging directory structure
+      # 1. Create a specific staging area for the final package
       - name: Create Staging Directory
         run: mkdir -p ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
 
+      # 2. Restore dependencies for the projects
       - name: dotnet restore
-        run: dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
+        run: |
+          dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
+          dotnet restore DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj
 
-      # Publish API to root
-      - name: dotnet publish Backend
+      # 3. Publish the Backend API to the root of the staging folder
+      - name: Publish Backend API
         run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./publish_staging
 
-      # Publish WebJob to subfolder
-      - name: Build and Publish Cleanup WebJob
+      # 4. Publish the Cleanup WebJob to the required Azure subfolder
+      - name: Publish Cleanup WebJob
         run: |
           dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
             -c Release \
@@ -40,12 +43,17 @@ jobs:
             --self-contained false \
             -f net8.0 \
             -o ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
-          
-      # DEBUG: This will show you in the logs if the file actually exists before zipping
-      - name: Verify WebJob Artifact Existence
-        run: ls -R ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
 
-      - name: Upload artifact for deployment job
+      # 5. Verification step: Print the folder structure to the GitHub logs
+      - name: Verify Artifact Structure
+        run: |
+          echo "--- Root Level (API) ---"
+          ls ./publish_staging
+          echo "--- WebJob Level ---"
+          ls ./publish_staging/App_Data/jobs/triggered/TinyUrlCleanup
+
+      # 6. Upload everything in publish_staging as one artifact
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
