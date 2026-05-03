@@ -20,7 +20,13 @@ logger.LogInformation("WebJob Cleanup Task started at: {time}", DateTimeOffset.N
 
 // 4. Logic to delete old URLs
 // Note: It looks for 'DefaultConnection' in your Azure App Service Connection Strings
-string? connectionString = config.GetConnectionString("DefaultConnection");
+
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddEnvironmentVariables() // This line is the magic!
+    .Build();
+
+string? connectionString = configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
 {
