@@ -20,52 +20,53 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 1. Create the EXACT folder structure Azure needs
+      # 1. Create the clean staging directory
       - name: Create Structure
         run: mkdir -p ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 2. Restore dependencies
+      # 2. Restore all projects
       - name: dotnet restore
-        run: |
-          dotnet restore DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj
-          dotnet restore DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj
+        run: dotnet restore DotnetCore/TinyUrlBackend_WebJob.sln
 
-      # 3. Publish Backend API (The Website)
+      # 3. Publish the Website (The Main API)
       - name: Publish Backend API
-        run: dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj -c Release -o ./final_package
+        run: |
+          dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj \
+            -c Release \
+            -o ./final_package
 
-      # 4. Publish Cleanup WebJob (The Background Task)
+      # 4. Publish the WebJob (The Cleanup Task)
+      # We use --no-restore because we did it in step 2. 
+      # We output directly into the specific WebJobs subfolder.
       - name: Publish Cleanup WebJob
         run: |
           dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
             -c Release \
-            -r linux-x64 \
-            --self-contained false \
             -f net8.0 \
             -o ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 5. AUTO-GENERATE DEPLOYMENT SCRIPTS (The Magic Fix)
-      # This ensures run.sh and settings.job (Timer) are always present
-      - name: Generate WebJob Scripts
+      # 5. Generate Startup Script and Timer
+      # CRITICAL: This fixes the 'Manual' status and the 'Run' button issues.
+      - name: Generate WebJob Metadata
         run: |
-          echo "dotnet TinyUrlCleanup.dll" > ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/run.sh
+          echo "#!/bin/bash" > ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/run.sh
+          echo "dotnet TinyUrlCleanup.dll" >> ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/run.sh
           echo '{"schedule": "0 */1 * * * *", "is_in_place": true}' > ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/settings.job
           chmod +x ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/run.sh
 
-      # 6. Verify Artifact Structure (Check your GitHub Action logs for this!)
-      - name: Verify Artifact Structure
+      # 6. Verification (Check this in your GitHub Action Logs)
+      - name: Verify Package Contents
         run: |
-          echo "--- API Files Found ---"
-          ls ./final_package
-          echo "--- WebJob Folder Check ---"
-          ls -R ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
+          echo "--- Checking for Serilog and DLLs ---"
+          ls ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/
+          echo "--- Checking run.sh content ---"
+          cat ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/run.sh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tinyurl-full-package
           path: ./final_package/
-          if-no-files-found: error
 
   deploy:
     runs-on: ubuntu-latest
@@ -88,7 +89,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_06514D3D4E2849D6955070A987346712 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_68AF89D06B254CD1AB2FE0634C67E3FE }}
 
-      # 7. Deploy the content to Azure
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
