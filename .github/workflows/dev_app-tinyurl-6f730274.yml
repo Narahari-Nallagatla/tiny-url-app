@@ -26,13 +26,14 @@ jobs:
 
       # 2. Restore all projects
       - name: dotnet restore
-        run: dotnet restore DotnetCore/
+        run: dotnet restore **/DotnetCore/**/*.csproj
 
       # 3. Publish the Website (The Main API)
       - name: Publish Backend API
         run: |
           dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj \
             -c Release \
+            --no-restore \
             -o ./final_package
 
       # 4. Publish the WebJob (The Cleanup Task)
@@ -43,6 +44,7 @@ jobs:
           dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
             -c Release \
             -f net8.0 \
+            --no-restore \
             -o ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
       # 5. Generate Startup Script and Timer
