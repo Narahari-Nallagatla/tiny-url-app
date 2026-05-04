@@ -26,7 +26,7 @@ jobs:
 
       # 2. Restore all projects
       - name: dotnet restore
-        run: dotnet restore DotnetCore/TinyUrlBackend_WebJob.sln
+        run: dotnet restore DotnetCore/
 
       # 3. Publish the Website (The Main API)
       - name: Publish Backend API
