@@ -24,16 +24,11 @@ jobs:
       - name: Create Structure
         run: mkdir -p ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
-      # 2. Restore all projects
-      - name: dotnet restore
-        run: dotnet restore **/DotnetCore/**/*.csproj
-
       # 3. Publish the Website (The Main API)
       - name: Publish Backend API
         run: |
           dotnet publish DotnetCore/TinyUrlBackend/TinyUrlBackend.csproj \
             -c Release \
-            --no-restore \
             -o ./final_package
 
       # 4. Publish the WebJob (The Cleanup Task)
@@ -44,7 +39,6 @@ jobs:
           dotnet publish DotnetCore/TinyUrlCleanup/TinyUrlCleanup.csproj \
             -c Release \
             -f net8.0 \
-            --no-restore \
             -o ./final_package/App_Data/jobs/triggered/TinyUrlCleanup
 
       # 5. Generate Startup Script and Timer
@@ -59,10 +53,8 @@ jobs:
       # 6. Verification (Check this in your GitHub Action Logs)
       - name: Verify Package Contents
         run: |
-          echo "--- Checking for Serilog and DLLs ---"
-          ls ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/
-          echo "--- Checking run.sh content ---"
-          cat ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/run.sh
+          echo "--- Checking files ---"
+          ls -R ./final_package/App_Data/jobs/triggered/TinyUrlCleanup/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -76,7 +68,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
